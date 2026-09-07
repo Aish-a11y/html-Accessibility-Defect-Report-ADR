@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Accessibility Defect Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="topbar__title">
+      <span class="topbar__mark" aria-hidden="true">A11y</span>
+      <div>
+        <h1>Accessibility Defect Report</h1>
+        <p>Log accessibility issues found during testing and export them as a formatted Excel report.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page" id="main" tabindex="-1">
+
+  <section class="card" aria-labelledby="bulk-h">
+    <h2 id="bulk-h">Bulk import from a spreadsheet</h2>
+    <p class="card__lede">
+      Download the template and fill in a <strong>Page</strong> and <strong>Finding</strong> for each issue you found —
+      that's all that's required. Leave WCAG SC, Change Type, User Impact and Recommendation blank and the built-in
+      rules engine will suggest them from your finding text; fill them in yourself if you already know them.
+      Occurrence defaults to "Desktop - Chrome/Edge" if left blank. Upload the completed file here and a formatted
+      Excel defect report downloads automatically.
+    </p>
+    <div class="btn-row">
+      <button type="button" class="btn btn--ghost" id="downloadTemplateBtn">Download template (.xlsx)</button>
+      <label class="btn btn--primary btn--file" for="uploadTemplateInput">
+        <span>Upload filled template</span>
+        <input type="file" id="uploadTemplateInput" class="visually-hidden"
+               accept=".xlsx,.xls" aria-describedby="uploadHint">
+      </label>
+    </div>
+    <p class="hint" id="uploadHint">Accepted formats: .xlsx or .xls. Importing also downloads the finished Excel report.</p>
+    <p class="hint" id="importStatus" role="status"></p>
+  </section>
+
+  <section class="card" aria-labelledby="single-h">
+    <h2 id="single-h">Or log a single issue</h2>
+    <p class="card__lede">
+      Just describe the bug you found in plain language, then use "Suggest WCAG SC, priority &amp; fix" — the WCAG
+      criterion, user impact, change type and a recommended fix are auto-filled from a built-in rules library.
+      Everything stays editable, so double-check the suggestion before adding the issue.
+    </p>
+
+    <form id="issueForm" novalidate>
+
+      <div class="error-summary" id="formErrors" tabindex="-1" role="group" aria-labelledby="formErrorsTitle" hidden>
+        <h3 id="formErrorsTitle" class="error-summary__title">There is a problem</h3>
+        <ul class="error-summary__list" id="formErrorsList"></ul>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend class="legend">What you found</legend>
+
+        <div class="grid grid--3">
+          <div class="field">
+            <label for="fPage">Page / Screen name <span class="field__req">(required)</span></label>
+            <input type="text" id="fPage" placeholder="e.g. Login Page"
+                   aria-required="true" aria-describedby="fPage-error">
+            <p class="field__error" id="fPage-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="fSteps">Steps to Reproduce</label>
+            <input type="text" id="fSteps" placeholder="e.g. 1. Go to Login Page 2. Tab to submit button">
+          </div>
+          <div class="field">
+            <label for="fLinkTools">Link and Tools Used</label>
+            <input type="text" id="fLinkTools" placeholder="e.g. https://example.com/login, NVDA + Chrome">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fFinding">Finding <span class="field__req">(required)</span></label>
+          <textarea id="fFinding" rows="3" aria-required="true" aria-describedby="fFinding-error"
+                    placeholder="e.g. The submit button loses its focus outline when tabbed to, or Hero image has no alt text"></textarea>
+          <p class="field__error" id="fFinding-error" hidden></p>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn--suggest" id="suggestBtn">Suggest WCAG SC, priority &amp; fix</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="legend">Classification</legend>
+
+        <div class="grid grid--3">
+          <div class="field">
+            <label for="fWcag">WCAG Success Criterion</label>
+            <input type="text" id="fWcag" list="wcagList" aria-describedby="fWcag-hint"
+                   placeholder="e.g. 1.1.1 Non-text Content (A)">
+            <datalist id="wcagList"></datalist>
+            <p class="hint hint--inline" id="fWcag-hint">Pick a WCAG 2.2 A/AA criterion from the list, or type your own.</p>
+          </div>
+          <div class="field">
+            <label for="fChangeType">Change type</label>
+            <select id="fChangeType">
+              <option>Code</option>
+              <option>Design</option>
+              <option>Content</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fImpact">User impact</label>
+            <select id="fImpact">
+              <option>Critical</option>
+              <option selected>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="legend">Tracking</legend>
+
+        <div class="grid grid--2">
+          <div class="field">
+            <label for="fStatus">Status</label>
+            <select id="fStatus">
+              <option>Open</option>
+              <option>In Progress</option>
+              <option>Fixed</option>
+              <option>Verified</option>
+              <option>Won't Fix</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fSignoff">Business sign-off</label>
+            <select id="fSignoff">
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="legend">Colour contrast check <span class="legend__optional">(optional — for Color Contrast findings)</span></legend>
+
+        <div class="grid grid--3">
+          <div class="field">
+            <label for="fFg">Foreground colour</label>
+            <input type="text" id="fFg" placeholder="#7990A1" aria-describedby="fColor-hint">
+          </div>
+          <div class="field">
+            <label for="fBg">Background colour</label>
+            <input type="text" id="fBg" placeholder="#FFFFFF" aria-describedby="fColor-hint">
+          </div>
+          <div class="field field--contrast" id="contrastResult" hidden>
+            <label for="contrastOutput">Contrast ratio</label>
+            <output id="contrastOutput" for="fFg fBg"></output>
+          </div>
+        </div>
+        <p class="hint hint--inline" id="fColor-hint">Enter 3- or 6-digit hex values, for example #767676 and #FFFFFF.</p>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="legend">Fix and evidence</legend>
+
+        <div class="field">
+          <label for="fRecommendation">Recommendation</label>
+          <textarea id="fRecommendation" rows="3" placeholder="Auto-filled after you use Suggest, or describe/paste the fix yourself"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="fComments">Test comments</label>
+          <textarea id="fComments" rows="2" placeholder="Optional notes for retesting"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="fScreenshot">Attachment / screenshot</label>
+          <input type="file" id="fScreenshot" accept="image/*" aria-describedby="fScreenshot-hint screenshotPreviewName">
+          <p class="hint hint--inline" id="fScreenshot-hint">Image files only. A thumbnail is stored with the issue.</p>
+          <p class="hint hint--inline" id="screenshotPreviewName" role="status"></p>
+        </div>
+      </fieldset>
+
+      <div class="btn-row">
+        <button type="submit" class="btn btn--primary">Add issue</button>
+        <button type="button" class="btn btn--ghost" id="clearFormBtn">Clear form</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card card--log" aria-labelledby="log-h">
+    <div class="log-head">
+      <h2 id="log-h">Defect log
+        <span class="count-badge"><span id="countBadge">0</span><span class="visually-hidden"> issues logged</span></span>
+      </h2>
+      <div class="btn-row">
+        <button type="button" class="btn btn--primary" id="exportBtn">Export to Excel</button>
+        <button type="button" class="btn btn--danger" id="clearAllBtn">Clear all</button>
+      </div>
+    </div>
+
+    <p class="hint" id="liveStatus" role="status"></p>
+
+    <div class="table-scroll" id="tableScroll" role="region" aria-label="Defect log table, scrollable" tabindex="0">
+      <table id="defectTable">
+        <caption class="visually-hidden">Logged accessibility defects. Scroll sideways to see every column.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Sr. No.</th>
+            <th scope="col">Page / Screen</th>
+            <th scope="col">Steps to Reproduce</th>
+            <th scope="col">Link and Tools Used</th>
+            <th scope="col">WCAG SC</th>
+            <th scope="col">Finding</th>
+            <th scope="col">Screenshot</th>
+            <th scope="col">Recommendation</th>
+            <th scope="col">Change Type</th>
+            <th scope="col">User Impact</th>
+            <th scope="col">Status</th>
+            <th scope="col">Test Comments</th>
+            <th scope="col">Business Sign-off</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody id="defectTableBody">
+        </tbody>
+      </table>
+    </div>
+    <p class="empty-state" id="emptyState">No issues logged yet. Use the form above to add one.</p>
+  </section>
+
+</main>
+
+<footer class="footer">All rights reserved to the owner/creator</footer>
+
+<dialog class="modal" id="imageModal" aria-labelledby="imageModalTitle">
+  <div class="modal__body">
+    <h2 class="visually-hidden" id="imageModalTitle">Screenshot preview</h2>
+    <button type="button" class="modal__close" id="imageModalClose">
+      <span aria-hidden="true">&times;</span>
+      <span class="visually-hidden">Close screenshot preview</span>
+    </button>
+    <img id="imageModalImg" alt="">
+  </div>
+</dialog>
+
+<!-- SheetJS reads uploaded .xlsx/.xls; ExcelJS writes the styled output
+     (the SheetJS community build cannot write fills, fonts or data validation). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

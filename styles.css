@@ -1,0 +1,511 @@
+/* ---- tokens ----------------------------------------------------
+   Contrast ratios noted below are measured with the WCAG relative
+   luminance formula against the surface the token is used on.
+   Text tokens meet 1.4.3 (4.5:1); --border-field and the focus ring
+   meet 1.4.11 (3:1).
+   ----------------------------------------------------------------- */
+:root {
+  --bg: #EEF1F4;
+  --surface: #FFFFFF;
+  --surface-sunken: #F5F7F9;
+  --ink: #14181F;
+  --ink-soft: #4B5563;
+  --ink-faint: #5F6B7A;        /* 5.43:1 on --surface, 5.05:1 on --surface-sunken */
+  --border: rgba(20, 24, 31, 0.14);   /* decorative separators only */
+  --border-field: #6B7280;     /* 4.83:1 on --surface, 4.50:1 on --surface-sunken */
+
+  --primary: #1F4B4E;
+  --primary-ink: #FFFFFF;
+  --primary-soft: #E1EBEA;
+  --primary-soft-ink: #163537;
+
+  --accent: #2F6FED;           /* 4.55:1 vs white — focus ring, 1.4.11 */
+  --accent-strong: #1B4FD1;    /* 5.85:1 on --accent-soft — text/borders */
+  --accent-soft: #E7EEFD;
+
+  --critical: #A32A22;
+  --critical-soft: #FBE6E4;
+  --high: #A05A12;
+  --high-soft: #FBEEDD;
+  --medium: #7A6412;
+  --medium-soft: #F8F1DA;
+  --low: #276648;
+  --low-soft: #E2F0E8;
+
+  --danger: #A32A22;
+  --danger-soft: #FBE6E4;
+
+  --radius: 3px;
+  --radius-lg: 6px;
+  --shadow: 0 1px 2px rgba(20,24,31,0.06), 0 4px 14px rgba(20,24,31,0.05);
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Libre Franklin", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10131A;
+    --surface: #171B24;
+    --surface-sunken: #1D222D;
+    --ink: #E9ECF1;
+    --ink-soft: #B4BCC8;
+    --ink-faint: #98A3B2;      /* 6.23:1 on --surface-sunken */
+    --border: rgba(233, 236, 241, 0.14);
+    --border-field: #8A94A3;   /* 5.19:1 on --surface-sunken */
+
+    --primary: #4C9A94;
+    --primary-ink: #0A1414;
+    --primary-soft: #1B3230;
+    --primary-soft-ink: #A9DBD4;
+
+    --accent: #6C9BFF;
+    --accent-strong: #6C9BFF;  /* 5.65:1 on --accent-soft */
+    --accent-soft: #1B2740;
+
+    --critical: #F0857A;
+    --critical-soft: #3A1A17;
+    --high: #E3A45C;
+    --high-soft: #3A2A12;
+    --medium: #DCC661;
+    --medium-soft: #362F12;
+    --low: #7FCBA0;
+    --low-soft: #163524;
+
+    --danger: #F0857A;
+    --danger-soft: #3A1A17;
+
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10131A;
+  --surface: #171B24;
+  --surface-sunken: #1D222D;
+  --ink: #E9ECF1;
+  --ink-soft: #B4BCC8;
+  --ink-faint: #98A3B2;
+  --border: rgba(233, 236, 241, 0.14);
+  --border-field: #8A94A3;
+
+  --primary: #4C9A94;
+  --primary-ink: #0A1414;
+  --primary-soft: #1B3230;
+  --primary-soft-ink: #A9DBD4;
+
+  --accent: #6C9BFF;
+  --accent-strong: #6C9BFF;
+  --accent-soft: #1B2740;
+
+  --critical: #F0857A;
+  --critical-soft: #3A1A17;
+  --high: #E3A45C;
+  --high-soft: #3A2A12;
+  --medium: #DCC661;
+  --medium-soft: #362F12;
+  --low: #7FCBA0;
+  --low-soft: #163524;
+
+  --danger: #F0857A;
+  --danger-soft: #3A1A17;
+
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+}
+
+/* ---- base --------------------------------------------------------- */
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;            /* honours the browser font-size setting — 1.4.4 */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; color: var(--ink); }
+p { margin: 0.4em 0 0; color: var(--ink-soft); }
+
+/* 2.4.7 / 1.4.11 — focus ring is >=3:1 against every surface it lands on */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hidden from sight, still in the accessibility tree.
+   Every ancestor that can hold one is position:relative, otherwise the
+   absolutely-positioned span resolves against the viewport, escapes any
+   overflow clipping and drags the document wider (breaking 1.4.10). */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 2.4.1 Bypass Blocks */
+.skip-link {
+  position: absolute;
+  left: 0.5rem; top: -6rem;
+  z-index: 100;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border-field);
+  border-radius: var(--radius);
+  padding: 0.7rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.skip-link:focus { top: 0.5rem; }
+#main:focus { outline: none; }
+
+/* ---- topbar --------------------------------------------------------- */
+.topbar {
+  background: var(--primary);
+  color: var(--primary-ink);
+  padding: 1.75rem 0;
+}
+.topbar__inner {
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+.topbar__title { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.topbar__mark {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  border: 1.5px solid color-mix(in srgb, var(--primary-ink) 55%, transparent);
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.topbar h1 { margin: 0; font-size: 1.625rem; color: var(--primary-ink); }
+/* 90%: 8.19:1 light, 5.03:1 dark — 82% fell to 4.45:1 in dark mode */
+.topbar p { margin: 0.25rem 0 0; color: color-mix(in srgb, var(--primary-ink) 90%, transparent); font-size: 0.875rem; }
+
+/* ---- layout --------------------------------------------------------- */
+.page {
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 3.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+@media (max-width: 30rem) {
+  .topbar__inner { padding: 0 1rem; }
+  .page { padding: 1.25rem 1rem 2.5rem; }
+  .card { padding: 1.25rem 1rem 1.25rem; }
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.625rem 1.625rem;
+}
+.card h2 { font-size: 1.1875rem; margin: 0 0 0.5rem; }
+.card__lede { max-width: 74ch; font-size: 0.875rem; }
+
+/* ---- form ------------------------------------------------------------ */
+form { margin-top: 1.125rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.fieldset {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0;
+  padding: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.legend {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 0.5rem 0 0;
+}
+.legend__optional { font-family: var(--font-body); font-weight: 400; font-size: 0.8125rem; color: var(--ink-faint); }
+
+.grid { display: grid; gap: 0.875rem; }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 54rem) {
+  .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; }
+}
+
+.field { display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }
+.field label { font-size: 0.8125rem; font-weight: 600; color: var(--ink-soft); }
+.field__req { font-weight: 400; color: var(--ink-faint); }
+
+input[type="text"], input[type="file"], select, textarea {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-field);   /* 1.4.11 — >=3:1 control boundary */
+  border-radius: var(--radius);
+  padding: 0.5625rem 0.6875rem;
+  width: 100%;
+  min-height: 2.75rem;
+}
+select { min-height: 2.75rem; }
+textarea { resize: vertical; font-family: var(--font-body); min-height: 3.5rem; }
+input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); background: var(--surface); }
+input[type="text"]::placeholder, textarea::placeholder { color: var(--ink-faint); opacity: 1; }
+
+/* 3.3.1 Error Identification — colour is never the only cue */
+[aria-invalid="true"] { border-color: var(--critical); border-width: 2px; }
+.field__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--critical);
+}
+.field__error[hidden] { display: none; }
+.field__error::before { content: "\26A0\FE0E  "; }
+
+.error-summary {
+  border: 2px solid var(--critical);
+  border-radius: var(--radius);
+  background: var(--critical-soft);
+  padding: 1rem 1.125rem;
+}
+.error-summary[hidden] { display: none; }
+.error-summary:focus-visible { outline-offset: 4px; }
+.error-summary__title { margin: 0; font-size: 1rem; color: var(--critical); }
+.error-summary__list { margin: 0.5rem 0 0; padding-left: 1.25rem; font-size: 0.875rem; }
+.error-summary__list li + li { margin-top: 0.25rem; }
+/* 2.5.8 — each error link is its own >=24px target, not an inline run of text */
+.error-summary__list a {
+  color: var(--critical);
+  font-weight: 600;
+  display: inline-block;
+  min-height: 1.5rem;
+  padding: 0.25rem 0;
+}
+
+.field--contrast {
+  justify-content: center;
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border-field);
+  border-radius: var(--radius);
+  padding: 0.5625rem 0.6875rem;
+}
+.field--contrast[hidden] { display: none; }
+#contrastOutput { font-family: var(--font-mono); font-size: 0.8125rem; }
+#contrastOutput .pass { color: var(--low); font-weight: 600; }
+#contrastOutput .fail { color: var(--critical); font-weight: 600; }
+
+/* ---- buttons ----------------------------------------------------------- */
+.btn-row { display: flex; gap: 0.625rem; flex-wrap: wrap; }
+.btn {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;          /* 2.5.8 Target Size */
+  min-width: 2.75rem;
+}
+.btn--primary { background: var(--primary); color: var(--primary-ink); }
+.btn--primary:hover { filter: brightness(1.08); }
+.btn--ghost { background: transparent; border-color: var(--border-field); color: var(--ink); }
+.btn--ghost:hover { background: var(--surface-sunken); }
+.btn--suggest { background: var(--accent-soft); color: var(--accent-strong); border-color: var(--accent-strong); }
+.btn--suggest:hover { filter: brightness(0.97); }
+.btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn--danger:hover { background: var(--danger-soft); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* 2.1.1 — the file input stays focusable; the styled label shows its ring */
+.btn--file:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+@supports selector(:has(*)) {
+  .btn--file:focus-within { outline: none; }
+  .btn--file:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+}
+
+.hint { font-size: 0.8125rem; color: var(--ink-faint); margin-top: 0.625rem; }
+.hint--inline { margin-top: 0.125rem; }
+.hint:empty { margin-top: 0; }
+.hint.is-error { color: var(--critical); font-weight: 600; }
+.hint.is-success { color: var(--low); font-weight: 600; }
+
+/* ---- defect log --------------------------------------------------------- */
+.card--log { padding-bottom: 0.625rem; }
+.log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.log-head h2 { display: flex; align-items: center; gap: 0.625rem; margin: 0; }
+.count-badge {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  background: var(--primary-soft);
+  color: var(--primary-soft-ink);
+  border-radius: 999px;
+  padding: 0.125rem 0.5625rem;
+  font-weight: 500;
+}
+
+.table-scroll {
+  position: relative;          /* contains .visually-hidden inside the table */
+  overflow-x: auto;
+  border: 1px solid var(--border-field);
+  border-radius: var(--radius);
+}
+.table-scroll:focus-visible { outline-offset: -1px; }
+table { border-collapse: collapse; width: 100%; min-width: 87.5rem; }
+caption { text-align: left; }
+thead th {
+  position: sticky; top: 0;
+  background: var(--primary);
+  color: var(--primary-ink);
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  padding: 0.625rem 0.75rem;
+  white-space: nowrap;
+}
+tbody td {
+  padding: 0.625rem 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+  vertical-align: top;
+  max-width: 15rem;
+}
+tbody tr:nth-child(even) { background: var(--surface-sunken); }
+td.col-num { font-family: var(--font-mono); color: var(--ink-faint); }
+/* holds the full criterion ("2.4.7 Focus Visible (AA)"), so it must wrap */
+td.col-sc { font-family: var(--font-mono); font-size: 0.8125rem; white-space: normal; }
+
+/* links out to the W3C "Understanding" page for the criterion */
+.sc-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;          /* 2.5.8 */
+  color: var(--accent-strong); /* 6.81:1 on --surface */
+}
+
+/* imported rows carry a screenshot URL rather than an embedded image */
+.shot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;          /* 2.5.8 */
+  color: var(--accent-strong); /* 6.81:1 on --surface */
+  font-weight: 600;
+}
+/* break-word only splits words that cannot fit; word-break:break-word split mid-word */
+td.col-wrap { white-space: normal; overflow-wrap: break-word; }
+
+.thumb-btn {
+  position: relative;
+  padding: 0; border: 0; background: transparent; cursor: pointer;
+  display: block; line-height: 0;
+  min-width: 2.625rem; min-height: 2.625rem;   /* 2.5.8 */
+}
+.thumb {
+  width: 2.625rem; height: 2.625rem; object-fit: cover;
+  border-radius: var(--radius); border: 1px solid var(--border-field);
+  display: block;
+}
+.no-thumb { color: var(--ink-faint); }
+
+.chip {
+  display: inline-flex; align-items: center;
+  font-size: 0.75rem; font-weight: 600;
+  padding: 0.1875rem 0.5625rem; border-radius: 999px;
+}
+.chip--Critical { background: var(--critical-soft); color: var(--critical); }  /* 6.02:1 */
+.chip--High { background: var(--high-soft); color: var(--high); }              /* 4.63:1 */
+.chip--Medium { background: var(--medium-soft); color: var(--medium); }        /* 5.12:1 */
+.chip--Low { background: var(--low-soft); color: var(--low); }                 /* 5.85:1 */
+
+.row-remove {
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--critical);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem; min-height: 1.75rem;   /* 2.5.8 — >=24x24 CSS px */
+}
+.row-remove:hover { background: var(--danger-soft); border-color: var(--danger); }
+
+.empty-state { text-align: center; color: var(--ink-faint); font-size: 0.875rem; padding: 2.125rem 0.625rem; }
+.empty-state[hidden] { display: none; }
+
+/* ---- footer -------------------------------------------------------------- */
+.footer {
+  background: var(--primary);
+  color: color-mix(in srgb, var(--primary-ink) 90%, transparent);  /* 8.19:1 light, 5.03:1 dark */
+  text-align: center;
+  font-size: 0.8125rem;
+  padding: 1rem;
+}
+
+/* ---- modal ----------------------------------------------------------------- */
+/* Native <dialog> supplies the dialog role, focus trap, Esc, focus restore
+   and an inert background — 4.1.2, 2.1.2, 2.4.3. */
+.modal {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  max-width: min(90vw, 50rem);
+  max-height: 86vh;
+  overflow: visible;
+  color: var(--ink);
+}
+.modal::backdrop { background: rgba(10, 12, 16, 0.72); }
+.modal__body { position: relative; }
+.modal__body img { max-width: 100%; max-height: 80vh; border-radius: var(--radius); display: block; }
+.modal__close {
+  position: absolute; top: 0; right: 0;
+  transform: translate(35%, -35%);
+  min-width: 2.25rem; min-height: 2.25rem;
+  border-radius: 50%;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--border-field);
+  font-size: 1.25rem; cursor: pointer; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: filter 0.12s ease, background-color 0.12s ease; }
+}
+
+/* Windows High Contrast / forced-colors: keep the focus ring visible */
+@media (forced-colors: active) {
+  :focus-visible,
+  .btn--file:focus-within,
+  .btn--file:has(input:focus-visible) { outline: 3px solid Highlight; }
+  .chip, .count-badge { border: 1px solid CanvasText; }
+  [aria-invalid="true"] { border-color: CanvasText; }
+}
