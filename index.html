@@ -8,6 +8,39 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+
+<!-- Google Analytics (GA4) — visitor counting -------------------------------
+     SETUP (one line to change):
+       1. Go to https://analytics.google.com and create a property.
+       2. Admin > Data streams > Add stream > Web, and enter
+          https://aish-a11y.github.io/html-Accessibility-Defect-Report-ADR/
+       3. Copy the Measurement ID shown for that stream (format: G-XXXXXXXXXX).
+       4. Paste it into GA_MEASUREMENT_ID below, then commit and push.
+
+     Until a real ID is set, nothing is loaded and nothing is sent anywhere.
+     Visits from file:// and localhost are ignored so that your own local
+     testing does not inflate the numbers. -->
+<script>
+(function () {
+  var GA_MEASUREMENT_ID = "G-XXXXXXXXXX";   /* <-- paste your Measurement ID here */
+
+  var notConfigured = GA_MEASUREMENT_ID === "G-XXXXXXXXXX" ||
+                      !/^G-[A-Z0-9]{6,}$/.test(GA_MEASUREMENT_ID);
+  var isLocal = location.protocol === "file:" ||
+                /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if (notConfigured || isLocal) return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", GA_MEASUREMENT_ID);
+
+  var s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_MEASUREMENT_ID;
+  document.head.appendChild(s);
+})();
+</script>
 </head>
 <body>
 

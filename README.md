@@ -84,6 +84,21 @@ The tool is built to the standard it reports against: **WCAG 2.2, Level AA**.
 
 ---
 
+## Analytics and privacy
+
+The hosted page counts visits with Google Analytics 4. The Measurement ID sits in a single constant
+at the top of [`index.html`](index.html); when it is unset, no analytics script loads and nothing is
+sent. Visits over `file://` and from `localhost` are ignored.
+
+**Defect data never leaves the browser.** Issues you log, uploaded spreadsheets and attached
+screenshots are held in `localStorage` and processed client-side; nothing is uploaded to any server,
+and analytics records page visits only — not the contents of your defect log.
+
+Note that Google processes the visit data, and GA4 sets cookies, so a consent banner may be required
+depending on where your visitors are located.
+
+---
+
 ## Markdown ADR workflow
 
 The repository also holds a lightweight written-report workflow for cases where a narrative ADR is
