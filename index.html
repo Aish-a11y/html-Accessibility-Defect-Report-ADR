@@ -1,38 +1,36 @@
 <!doctype html>
 <html lang="en">
 <head>
-     <!-- Google Tag Manager -->
+<!-- charset must come first: the HTML spec requires the encoding declaration
+     within the first 1024 bytes, and this page uses em dashes and accents. -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TTJJP9VN');</script>
 <!-- End Google Tag Manager -->
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Accessibility Defect Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 
-<!-- Google Analytics (GA4) — visitor counting -------------------------------
-     SETUP (one line to change):
-       1. Go to https://analytics.google.com and create a property.
-       2. Admin > Data streams > Add stream > Web, and enter
-          https://aish-a11y.github.io/html-Accessibility-Defect-Report-ADR/
-       3. Copy the Measurement ID shown for that stream (format: G-XXXXXXXXXX).
-       4. Paste it into GA_MEASUREMENT_ID below, then commit and push.
-
-     Until a real ID is set, nothing is loaded and nothing is sent anywhere.
-     Visits from file:// and localhost are ignored so that your own local
-     testing does not inflate the numbers. -->
+<!-- Google tag (gtag.js) — GA4 visitor counting ------------------------------
+     Equivalent to Google's standard snippet, with one guard added: visits
+     from file:// and localhost are ignored, so your own local testing does
+     not inflate the numbers. To point at a different property, change
+     GA_MEASUREMENT_ID and nothing else. -->
 <script>
 (function () {
-  var GA_MEASUREMENT_ID = "G-VLL9XQ50PC";   /* <-- paste your Measurement ID here */
+  var GA_MEASUREMENT_ID = "G-VLL9XQ50PC";
 
-  var notConfigured = GA_MEASUREMENT_ID === "G-VLL9XQ50PC" ||
-                      !/^G-[A-Z0-9]{6,}$/.test(GA_MEASUREMENT_ID);
+  /* Must not compare against the live ID — that made this always true and
+     silently disabled analytics. Just check the id is well formed. */
+  var notConfigured = !/^G-[A-Z0-9]{6,}$/.test(GA_MEASUREMENT_ID);
   var isLocal = location.protocol === "file:" ||
                 /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   if (notConfigured || isLocal) return;
