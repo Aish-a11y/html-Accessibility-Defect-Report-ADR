@@ -187,7 +187,9 @@
       fix: "Ensure that pointer targets measure at least 24x24 CSS px so that users with motor impairments can activate them without hitting an adjacent control. " +
         "Make sure to grow the <button> or <a> element with padding or a min-width and min-height of 24px rather than relying on the icon's own dimensions, or leave at least 24px between the centers of adjacent targets so that a 24x24 CSS px circle drawn around each one does not overlap another, as there is no ARIA equivalent for a sizing fix." },
 
-    { id: "reflow", keywords: ["zoom", "resize text", "reflow", "horizontal scroll", "200%"],
+    /* 1.4.10 is the 400% / 320px criterion; anything about 200% text scaling
+       belongs to 1.4.4 Resize Text, so those keywords live on that rule. */
+    { id: "reflow", keywords: ["zoom", "reflow", "horizontal scroll", "two-dimensional scroll", "scrolls sideways", "400%", "400 percent", "320px", "320 css px"],
       sc: "1.4.10 Reflow (AA)", changeType: "Code", impact: "Medium",
       fix: "Ensure that content reflows into a single column at a 320 CSS px viewport width, equivalent to 400 percent zoom on a 1280px screen, so that low vision users do not have to scroll horizontally to read a line of text. " +
         "Make sure to replace fixed pixel widths with relative units and a wrapping flex or grid layout, as there is no ARIA equivalent for a layout fix. " +
@@ -287,7 +289,9 @@
         "Make sure to add a text label, an icon, an underline or a pattern alongside the colour, for example marking required fields with the word \"required\" and errors with an icon and message rather than red text alone, as there is no ARIA equivalent for a visual cue. " +
         "Also ensure that a link distinguished from body text by colour alone is underlined or carries a contrast ratio of at least 3:1 against the surrounding text." },
 
-    { id: "resize-text", keywords: ["resize text", "200 percent", "text zoom", "enlarge text", "font size fixed", "text cut off when zoomed", "cannot increase font"],
+    /* the "200% zoom" variants must outscore the bare word "zoom" on the
+       reflow rule, which is the 400% criterion */
+    { id: "resize-text", keywords: ["resize text", "200%", "200 percent", "200% zoom", "200 percent zoom", "zoomed to 200", "zoom to 200", "text zoom", "enlarge text", "font size fixed", "text cut off when zoomed", "cannot increase font", "increase text size", "text does not scale", "text size fixed"],
       sc: "1.4.4 Resize Text (AA)", changeType: "Code", impact: "Medium",
       fix: "Ensure that text can be enlarged to 200 percent without loss of content or functionality so that low vision users can read it without extra assistive software. " +
         "Make sure to size text and its containers in relative units such as rem or em rather than fixed px heights, let containers grow with their content, and confirm at 200 percent browser zoom that nothing is clipped, overlapped or pushed into horizontal scrolling, as there is no ARIA equivalent for a sizing fix." },
