@@ -61,8 +61,15 @@ hyperlink to the relevant W3C *Understanding* page.
 
 ## Rules engine
 
-25 keyword rules map a plain-language finding to a WCAG 2.2 A/AA success criterion, a change type, a
-user impact and a recommendation. Recommendations follow a fixed house style:
+58 keyword rules map a plain-language finding to a WCAG 2.2 success criterion, a change type, a user
+impact and a recommendation. **All 55 Level A and AA criteria are covered**, so any finding that
+names a recognisable symptom gets a specific recommendation rather than a generic one.
+
+Matching scores by the length of the matched phrase rather than the number of matches, so the more
+specific rule wins: "icon contrast" resolves to *1.4.11 Non-text Contrast* rather than *1.4.3
+Contrast (Minimum)*, and "focus indicator contrast" beats both.
+
+Recommendations follow a fixed house style:
 
 > Ensure that *&lt;desired end state&gt;* so that *&lt;affected AT user group&gt;* *&lt;specific benefit&gt;*.
 > Make sure to *&lt;native / semantic HTML fix, naming exact tags&gt;* or Provide *&lt;ARIA fallback,

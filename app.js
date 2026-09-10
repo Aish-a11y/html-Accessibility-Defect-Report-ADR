@@ -239,7 +239,200 @@
     { id: "consistent-nav", keywords: ["inconsistent navigation", "navigation changes", "menu order changes"],
       sc: "3.2.3 Consistent Navigation (AA)", changeType: "Design", impact: "Low",
       fix: "Ensure that navigation repeated across pages appears in the same relative order on every page so that screen reader users and low vision users using magnification can predict where each control will be. " +
-        "Make sure to keep the header, primary navigation, search and footer links in a fixed sequence in the DOM, adding or removing items without reordering the ones that remain, as there is no ARIA equivalent for information architecture." }
+        "Make sure to keep the header, primary navigation, search and footer links in a fixed sequence in the DOM, adding or removing items without reordering the ones that remain, as there is no ARIA equivalent for information architecture." },
+    /* ---- Perceivable: time-based media ---- */
+
+    { id: "audio-video-only", keywords: ["audio only", "audio-only", "video only", "video-only", "podcast", "silent video", "no transcript"],
+      sc: "1.2.1 Audio-only and Video-only (Prerecorded) (A)", changeType: "Content", impact: "High",
+      fix: "Ensure that prerecorded audio-only and video-only content has an equivalent text alternative so that screen reader users and users who are Deaf or hard of hearing reach the same information. " +
+        "Make sure to publish a full transcript beside an audio-only file, and for video-only content either a text description of what happens on screen or a recorded audio track describing it, linked from the same page, as there is no ARIA equivalent for missing media content." },
+
+    { id: "media-alternative", keywords: ["media alternative", "no audio description", "video description missing", "text alternative for video", "visual information in video"],
+      sc: "1.2.3 Audio Description or Media Alternative (Prerecorded) (A)", changeType: "Content", impact: "High",
+      fix: "Ensure that prerecorded video conveys its visual information in an alternative form so that blind and low vision users understand what is shown on screen. " +
+        "Make sure to add a description track to the <video> element, for example <track kind=\"descriptions\" srclang=\"en\" src=\"described.vtt\">, or publish a full text alternative covering both the dialogue and the on-screen action, as there is no ARIA equivalent for describing video content." },
+
+    { id: "live-caption", keywords: ["live caption", "webinar caption", "real-time caption", "live stream caption", "live broadcast caption"],
+      sc: "1.2.4 Captions (Live) (AA)", changeType: "Content", impact: "High",
+      fix: "Ensure that live audio in synchronized media is captioned so that users who are Deaf or hard of hearing can follow a broadcast or webinar as it happens. " +
+        "Make sure to supply real-time captions through the player's caption track or a professional live captioning service, and announce before the session how captions are switched on, as there is no ARIA equivalent for live caption content." },
+
+    { id: "audio-description", keywords: ["audio description", "audio described", "description track", "described version"],
+      sc: "1.2.5 Audio Description (Prerecorded) (AA)", changeType: "Content", impact: "Medium",
+      fix: "Ensure that prerecorded video carries an audio description of its visual content so that blind and low vision users receive information that is only shown on screen. " +
+        "Make sure to add a description track to the <video> element, for example <track kind=\"descriptions\" srclang=\"en\" src=\"described.vtt\">, or publish a separately described version of the video and link to it from the player, as there is no ARIA equivalent for narrated description." },
+
+    /* ---- Perceivable: adaptable ---- */
+
+    { id: "meaningful-sequence", keywords: ["meaningful sequence", "reading order", "dom order", "source order", "content order", "order of content", "out of order", "visual order differs"],
+      sc: "1.3.2 Meaningful Sequence (A)", changeType: "Code", impact: "High",
+      fix: "Ensure that the order of content in the DOM matches the order it is presented in so that screen reader users and keyboard-only users meet the content in a sequence that preserves its meaning. " +
+        "Make sure to place the elements in the correct order in the HTML source and use CSS only for visual placement, avoiding flex order, row-reverse, and grid-placement rules that move a block away from its source position, as there is no ARIA equivalent for reading order and a positive tabindex must never be used to patch it." },
+
+    { id: "sensory", keywords: ["sensory characteristic", "shape or size", "button on the right", "the icon below", "click the round", "refer to position", "identified by shape", "instructions rely on"],
+      sc: "1.3.3 Sensory Characteristics (A)", changeType: "Content", impact: "Medium",
+      fix: "Ensure that instructions do not rely on shape, size, visual position or sound alone so that screen reader users and low vision users can follow them without seeing the layout. " +
+        "Make sure to name the control in the instruction text, for example \"select Continue\" rather than \"select the round button on the right\", and pair any positional cue with the control's visible label, as there is no ARIA equivalent for rewriting an instruction." },
+
+    { id: "input-purpose", keywords: ["autocomplete", "autofill", "input purpose", "identify input purpose"],
+      sc: "1.3.5 Identify Input Purpose (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that fields collecting the user's own information declare their purpose so that browsers and assistive technology can fill them in for users with motor impairments and users with cognitive disabilities. " +
+        "Make sure to add the matching autocomplete token to the <input> element, for example autocomplete=\"given-name\", autocomplete=\"email\" or autocomplete=\"tel\", alongside the correct type attribute, as there is no ARIA equivalent for input purpose." },
+
+    /* ---- Perceivable: distinguishable ---- */
+
+    { id: "use-of-color", keywords: ["use of color", "use of colour", "color alone", "colour alone", "only by color", "only by colour", "indicated by color", "red text only", "color is the only"],
+      sc: "1.4.1 Use of Color (A)", changeType: "Design", impact: "High",
+      fix: "Ensure that colour is never the only means of conveying information so that users with a colour vision deficiency and screen reader users receive the same meaning. " +
+        "Make sure to add a text label, an icon, an underline or a pattern alongside the colour, for example marking required fields with the word \"required\" and errors with an icon and message rather than red text alone, as there is no ARIA equivalent for a visual cue. " +
+        "Also ensure that a link distinguished from body text by colour alone is underlined or carries a contrast ratio of at least 3:1 against the surrounding text." },
+
+    { id: "resize-text", keywords: ["resize text", "200 percent", "text zoom", "enlarge text", "font size fixed", "text cut off when zoomed", "cannot increase font"],
+      sc: "1.4.4 Resize Text (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that text can be enlarged to 200 percent without loss of content or functionality so that low vision users can read it without extra assistive software. " +
+        "Make sure to size text and its containers in relative units such as rem or em rather than fixed px heights, let containers grow with their content, and confirm at 200 percent browser zoom that nothing is clipped, overlapped or pushed into horizontal scrolling, as there is no ARIA equivalent for a sizing fix." },
+
+    { id: "images-of-text", keywords: ["image of text", "images of text", "text in image", "text as image", "banner text image", "screenshot of text"],
+      sc: "1.4.5 Images of Text (AA)", changeType: "Design", impact: "Medium",
+      fix: "Ensure that information is presented as real text rather than a picture of text so that screen reader users can read it and low vision users can magnify or restyle it without it blurring. " +
+        "Make sure to replace the image with HTML text styled by CSS, using a web font where a particular typeface is required, as an alt attribute alone does not satisfy this and there is no ARIA equivalent. " +
+        "Logotypes and text that forms part of a photograph are the documented exceptions." },
+
+    { id: "non-text-contrast", keywords: ["non-text contrast", "icon contrast", "border contrast", "button contrast", "component contrast", "visual component", "graphical object", "boundary contrast", "input border", "focus indicator contrast", "ui component contrast", "chart contrast", "control contrast", "svg contrast"],
+      sc: "1.4.11 Non-text Contrast (AA)", changeType: "Design", impact: "Medium",
+      fix: "Ensure that user interface components and meaningful graphics carry a contrast ratio of at least 3:1 against the colours next to them so that low vision users can find the controls and read the graphics. " +
+        "Make sure to darken or lighten the boundary of every input, button, checkbox, toggle and focus indicator until it reaches 3:1 against both its own fill and the surrounding background, and do the same for the meaningful parts of icons, charts and diagrams, as there is no ARIA equivalent for a colour fix. " +
+        "Also ensure that the contrast ratio of at least 3:1 also holds in the hover, focus, checked and disabled-but-operable states." },
+
+    { id: "text-spacing", keywords: ["text spacing", "line height", "letter spacing", "word spacing", "paragraph spacing", "text overlaps", "spacing override"],
+      sc: "1.4.12 Text Spacing (AA)", changeType: "Design", impact: "Medium",
+      fix: "Ensure that content survives a text spacing override of line height at 1.5 times the font size, paragraph spacing at 2 times, letter spacing at 0.12 times and word spacing at 0.16 times so that users with dyslexia or low vision can apply their own spacing without losing information. " +
+        "Make sure to let containers grow with their content by avoiding fixed height and overflow: hidden on blocks of text, and set spacing in relative units, as there is no ARIA equivalent for a layout fix." },
+
+    { id: "hover-focus", keywords: ["tooltip", "hover content", "popover", "content on hover", "disappears on hover", "hover reveal", "flyout"],
+      sc: "1.4.13 Content on Hover or Focus (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that content shown on hover or focus can be dismissed, hovered over and stays visible so that low vision users using magnification and keyboard-only users can read it before it disappears. " +
+        "Make sure to keep the tooltip or popover open while the pointer travels onto it, let Esc dismiss it without moving focus, and keep it on screen until the user moves away or dismisses it, or Provide the same content in a persistent element that does not depend on hover at all." },
+
+    /* ---- Operable: keyboard and timing ---- */
+
+    { id: "char-shortcut", keywords: ["character key", "single key shortcut", "keyboard shortcut", "hotkey", "shortcut key", "single character"],
+      sc: "2.1.4 Character Key Shortcuts (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that shortcuts made only of letter, punctuation, number or symbol characters can be turned off or remapped so that speech-input users and users with motor impairments do not fire them by accident. " +
+        "Make sure to require a modifier such as Ctrl or Alt as part of the shortcut, or Provide a setting that lets the user disable or remap the single-character shortcuts, and only listen for the key while the relevant component has focus." },
+
+    { id: "pause-stop-hide", keywords: ["carousel", "auto-scroll", "marquee", "blinking", "auto rotating", "moving content", "auto refresh", "pause stop hide", "cannot be paused", "auto-advancing"],
+      sc: "2.2.2 Pause, Stop, Hide (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that moving, blinking or auto-updating content can be paused so that screen reader users and users with attention or vestibular disorders are not disrupted while reading. " +
+        "Make sure to add a visible <button> that pauses and resumes any carousel, marquee or auto-refreshing region running longer than five seconds, place that control before the moving content in the DOM, and stop the motion for anyone who sets prefers-reduced-motion: reduce, as there is no ARIA equivalent for a pause control." },
+
+    /* ---- Operable: navigable ---- */
+
+    { id: "focus-order", keywords: ["focus order", "focus jumps", "focus moves unexpectedly", "focus lost", "focus not returned", "focus goes to top", "tab sequence"],
+      sc: "2.4.3 Focus Order (A)", changeType: "Code", impact: "High",
+      fix: "Ensure that focus moves through the page in an order that preserves meaning and operability so that keyboard-only users and screen reader users never lose their place. " +
+        "Make sure to keep the DOM order the same as the visual reading order and never apply a positive tabindex, and when a dialog or menu opens move focus into it and return focus to the control that opened it on close, or Provide tabindex=\"-1\" on a container that has to receive focus programmatically." },
+
+    { id: "multiple-ways", keywords: ["multiple ways", "no search", "no sitemap", "only one way to find", "no breadcrumb", "cannot find page"],
+      sc: "2.4.5 Multiple Ways (AA)", changeType: "Code", impact: "Low",
+      fix: "Ensure that more than one way is available to locate a page within the site so that screen reader users and users with cognitive disabilities can find content in whichever way suits them. " +
+        "Make sure to offer at least two of a site-wide navigation menu, a search field, a sitemap page or a breadcrumb trail, marking the menu with <nav> and the search region with the <search> element or role=\"search\", as there is no ARIA equivalent for the underlying information architecture." },
+
+    { id: "headings-labels", keywords: ["descriptive heading", "vague label", "generic heading", "unclear label", "heading not descriptive", "label not descriptive", "duplicate heading", "heading is not descriptive", "label is not descriptive", "headings are not descriptive", "labels are not descriptive"],
+      sc: "2.4.6 Headings and Labels (AA)", changeType: "Content", impact: "Medium",
+      fix: "Ensure that headings and labels describe the topic or purpose of what they introduce so that screen reader users scanning a list of headings can tell the sections apart. " +
+        "Make sure to write specific wording inside the <h1> to <h6> and <label> elements, for example \"Delivery address\" rather than \"Section 2\" and \"Email address\" rather than \"Enter text\", as there is no ARIA equivalent for the wording itself. " +
+        "Make sure that two headings or labels on one page do not carry identical text for different content." },
+
+    { id: "focus-obscured", keywords: ["focus obscured", "focus hidden", "sticky header covers", "focus behind", "focused element hidden", "covered by banner", "hidden behind toolbar"],
+      sc: "2.4.11 Focus Not Obscured (Minimum) (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that the component receiving focus is not entirely hidden behind other content so that keyboard-only users can see where they are on the page. " +
+        "Make sure to keep sticky headers, footers, cookie banners and chat widgets clear of the focused control, adding scroll-padding-top to the scrolling container so a sticky header does not cover an element scrolled into view, as there is no ARIA equivalent for a layout overlap. " +
+        "Also ensure that the whole focus indicator remains visible rather than only part of it." },
+
+    /* ---- Operable: input modalities ---- */
+
+    { id: "pointer-gestures", keywords: ["swipe", "pinch", "gesture", "multi-touch", "path-based", "two finger", "slide to", "drag along"],
+      sc: "2.5.1 Pointer Gestures (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that any multipoint or path-based gesture has a single-pointer alternative so that users with motor impairments and users of assistive pointing devices can carry out the same function. " +
+        "Make sure to add <button> controls that perform the action with one tap, such as previous and next buttons beside a swipe carousel or zoom in and out buttons beside a pinch-to-zoom map, as there is no ARIA equivalent for a gesture alternative." },
+
+    { id: "pointer-cancellation", keywords: ["mousedown", "pointer cancellation", "down event", "triggers on press", "activates on touch start", "fires immediately on tap"],
+      sc: "2.5.2 Pointer Cancellation (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that a function is not completed on the down-event so that users with motor impairments can slide off a control and abort it before it fires. " +
+        "Make sure to trigger the action on the click or pointerup event rather than on mousedown or pointerdown, and where completing on the down-event is essential, such as a piano key, add a clearly labelled way to undo it, as there is no ARIA equivalent for event timing." },
+
+    { id: "label-in-name", keywords: ["label in name", "voice control", "speech input", "aria-label differs", "visible label mismatch", "accessible name does not match"],
+      sc: "2.5.3 Label in Name (A)", changeType: "Code", impact: "High",
+      fix: "Ensure that the accessible name of a control contains its visible label text so that speech-input users can activate it by speaking the words they can see. " +
+        "Make sure to let the visible text inside the <button> or <a> element supply the accessible name, or Provide an aria-label that begins with the exact visible wording, for example aria-label=\"Search flights\" on a button labelled Search. " +
+        "Make sure never to replace the visible wording with different text in aria-label, because that leaves voice control with no working command." },
+
+    { id: "motion-actuation", keywords: ["shake", "tilt", "device motion", "motion actuation", "accelerometer", "shake to undo", "tilt to scroll"],
+      sc: "2.5.4 Motion Actuation (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that any function triggered by moving the device can also be operated through the interface so that users with tremor and users whose device is mounted to a wheelchair are not excluded. " +
+        "Make sure to add a <button> that performs the same action as shaking or tilting, such as an Undo button beside a shake-to-undo gesture, and offer a setting to switch motion actuation off, as there is no ARIA equivalent for a motion alternative." },
+
+    /* ---- Understandable: readable and predictable ---- */
+
+    { id: "lang-parts", keywords: ["language of parts", "foreign phrase", "different language", "mispronounced", "lang on span", "second language"],
+      sc: "3.1.2 Language of Parts (AA)", changeType: "Code", impact: "Low",
+      fix: "Ensure that passages written in another language are marked up so that screen reader users hear them with the correct pronunciation and accent. " +
+        "Make sure to add a lang attribute carrying the right BCP 47 code to the element wrapping the passage, for example <span lang=\"fr\">bon appetit</span> or <blockquote lang=\"de\">, as there is no ARIA equivalent for language. " +
+        "Proper nouns and words that have entered everyday use in the page language are the documented exceptions." },
+
+    { id: "on-focus", keywords: ["on focus", "changes on focus", "focus triggers", "context change on focus", "opens when focused", "submits on focus"],
+      sc: "3.2.1 On Focus (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that moving focus to a component does not by itself change the context so that screen reader users and keyboard-only users are not thrown somewhere unexpected while tabbing. " +
+        "Make sure to trigger navigation, form submission and dialog opening from an explicit activation such as a click or Enter rather than from the focus event, as there is no ARIA equivalent for a change of context. " +
+        "Make sure that a <select> element neither navigates on focus nor acts on an arrow-key change." },
+
+    { id: "on-input", keywords: ["on input", "auto submit", "changes on select", "navigates on change", "form submits automatically", "dropdown reloads", "page reloads on change"],
+      sc: "3.2.2 On Input (A)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that changing a setting does not automatically change the context so that screen reader users are not redirected before they have finished choosing. " +
+        "Make sure to add an explicit Submit or Apply <button> after a <select> or radio group rather than acting on the change event, or Provide advance warning in text before the control explaining what will happen when the value changes." },
+
+    { id: "consistent-id", keywords: ["consistent identification", "different label same function", "inconsistent naming", "same icon different name", "named differently"],
+      sc: "3.2.4 Consistent Identification (AA)", changeType: "Design", impact: "Low",
+      fix: "Ensure that components with the same function are identified consistently throughout the site so that screen reader users and users with cognitive disabilities recognise them by name. " +
+        "Make sure to use the same visible label, accessible name and icon for the same action on every page, for example always \"Search\" rather than \"Search\" in the header and \"Find\" in the footer, as there is no ARIA equivalent for naming consistency." },
+
+    { id: "consistent-help", keywords: ["consistent help", "help link moves", "contact details position", "chat widget position", "support link location"],
+      sc: "3.2.6 Consistent Help (AA)", changeType: "Design", impact: "Low",
+      fix: "Ensure that help mechanisms appear in the same relative order on every page that offers them so that users with cognitive disabilities can find support without hunting for it. " +
+        "Make sure to keep contact details, a help link, a chat launcher or a self-help option in a consistent position in the DOM across pages, as there is no ARIA equivalent for placement consistency." },
+
+    /* ---- Understandable: input assistance ---- */
+
+    { id: "error-suggestion", keywords: ["error suggestion", "invalid input message", "no suggestion", "does not say how to fix", "unhelpful error", "just says invalid"],
+      sc: "3.3.3 Error Suggestion (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that an error message suggests how to put the problem right so that screen reader users and users with cognitive disabilities can correct the entry without guessing. " +
+        "Make sure to describe the expected format or offer a valid value in the message text, for example \"Enter the date as DD/MM/YYYY\" rather than \"Invalid date\", and link the message to the field with aria-describedby, as there is no ARIA equivalent for the wording itself." },
+
+    { id: "error-prevention", keywords: ["error prevention", "no confirmation", "cannot undo", "irreversible", "payment submit", "delete without confirm", "legal financial", "no review step"],
+      sc: "3.3.4 Error Prevention (Legal, Financial, Data) (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that submissions carrying legal, financial or data consequences can be reversed, checked or confirmed so that screen reader users and users with cognitive disabilities do not commit a costly mistake. " +
+        "Make sure to add a review step that shows the entered values before final submission with a way to go back and edit them, or Provide a clearly labelled confirmation step or an undo window immediately afterwards." },
+
+    { id: "redundant-entry", keywords: ["redundant entry", "enter again", "retype", "repeat information", "same as billing", "asks twice", "re-enter the same"],
+      sc: "3.3.7 Redundant Entry (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that information already supplied earlier in the same process is not asked for again so that users with cognitive disabilities and users who type slowly do not have to repeat themselves. " +
+        "Make sure to carry the earlier value forward and prefill the field, or Provide it as a selectable option such as a \"same as billing address\" checkbox. " +
+        "Re-entry that is essential, such as confirming a new password, is the documented exception." },
+
+    { id: "accessible-auth", keywords: ["authentication", "captcha", "login puzzle", "paste blocked", "password manager", "two factor", "memorize code", "transcribe code"],
+      sc: "3.3.8 Accessible Authentication (Minimum) (AA)", changeType: "Code", impact: "High",
+      fix: "Ensure that logging in does not depend on remembering, transcribing or solving a puzzle so that users with cognitive disabilities and users with memory difficulties can authenticate. " +
+        "Make sure to let a password manager fill the fields by adding autocomplete=\"username\" and autocomplete=\"current-password\" to the <input> elements and never blocking paste, or Provide an alternative route such as an emailed link or a passkey. " +
+        "Make sure that any object-recognition or puzzle step has an accessible alternative alongside it." },
+
+    /* ---- Robust ---- */
+
+    { id: "status-message", keywords: ["status message", "not announced", "live region", "aria-live", "no announcement", "toast", "snackbar", "results count not announced", "silent update"],
+      sc: "4.1.3 Status Messages (AA)", changeType: "Code", impact: "Medium",
+      fix: "Ensure that status messages are announced without moving focus so that screen reader users learn the outcome of an action while staying where they are. " +
+        "Make sure to place the message inside a container that is already present in the DOM and mark it with role=\"status\" for confirmations, counts and progress, or Provide role=\"alert\" for errors that need immediate attention, then write the text into that container. " +
+        "Make sure not to move focus to the message, and not to insert the live region and its text in the same update, because a region added at the same moment as its content is not announced." },
   ];
 
   /* Too vague to name a fix — ask for the missing detail rather than
@@ -250,15 +443,26 @@
       "Add the DOM snippet for the element in question, the exact foreground and background color values if this is a contrast issue, or what the screen reader announced compared with what was expected, then use Suggest again for a specific recommendation."
   };
 
+  /* Score by matched keyword length, not by count, so the more specific
+     phrase wins: "icon contrast" must beat the bare word "contrast", and
+     "focus indicator contrast" must beat both. */
   function matchRule(text) {
-    var t = text.toLowerCase();
-    var best = null, bestScore = 0;
+    var t = String(text == null ? "" : text).toLowerCase();
+    var best = null, bestScore = 0, bestLongest = 0;
     RULES.forEach(function (rule) {
-      var score = 0;
+      var score = 0, longest = 0;
       rule.keywords.forEach(function (kw) {
-        if (t.indexOf(kw) !== -1) score++;
+        if (t.indexOf(kw) === -1) return;
+        score += kw.length;
+        if (kw.length > longest) longest = kw.length;
       });
-      if (score > bestScore) { bestScore = score; best = rule; }
+      if (score === 0) return;
+      /* tie-break on the single most specific phrase matched */
+      if (score > bestScore || (score === bestScore && longest > bestLongest)) {
+        bestScore = score;
+        bestLongest = longest;
+        best = rule;
+      }
     });
     return best;
   }
