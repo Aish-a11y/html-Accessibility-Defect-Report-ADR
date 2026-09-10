@@ -36,13 +36,22 @@ top row and autofilter:
 
 | # | Column | # | Column |
 |---|---|---|---|
-| 1 | Sr. No. | 8 | Recommendation |
-| 2 | Page / Screen | 9 | Change Type |
-| 3 | Steps to Reproduce | 10 | User Impact |
-| 4 | Link and Tools Used | 11 | Status |
-| 5 | WCAG SC | 12 | Test Comments |
-| 6 | Finding | 13 | Business Sign-off |
-| 7 | Screenshot | | |
+| 1 | Sr. No. | 9 | Screenshot |
+| 2 | Page / Screen | 10 | Recommendation |
+| 3 | Steps to Reproduce | 11 | Change Type |
+| 4 | Link and Tools Used | 12 | User Impact |
+| 5 | WCAG SC | 13 | Status |
+| 6 | Level | 14 | Test Comments |
+| 7 | Occurrence | 15 | Business Sign-off |
+| 8 | Finding | | |
+
+**Level** and **Occurrence** fill themselves in: Level is derived from the chosen WCAG criterion
+(A or AA) and Occurrence is always `Desktop - Chrome/Edge`, so both can be left blank in the
+template.
+
+**Screenshot** holds the real picture. An image attached through the form is embedded in the report
+as an actual picture, scaled to fit and with the row grown to match; a row imported with a URL
+instead keeps that URL as a clickable link.
 
 The exported report opens with an **About** sheet carrying the generation date, the standard, totals
 by user impact and status, and reference links. Every recognised **WCAG SC** cell is a live

@@ -77,15 +77,30 @@
   }
 
   var WCAG_URLS = {};
+  var WCAG_LEVELS = {};
   WCAG_CRITERIA.forEach(function (c) {
     var m = c.match(/^(\d+\.\d+\.\d+)\s+(.+)$/);
-    if (m) WCAG_URLS[m[1]] = "https://www.w3.org/WAI/WCAG22/Understanding/" + scSlug(m[2]) + ".html";
+    if (!m) return;
+    WCAG_URLS[m[1]] = "https://www.w3.org/WAI/WCAG22/Understanding/" + scSlug(m[2]) + ".html";
+    var lv = m[2].match(/\((A{1,3})\)\s*$/);
+    if (lv) WCAG_LEVELS[m[1]] = lv[1];
   });
 
   /* Only criteria from the list above get a link, so a hand-typed or
      unrecognised entry never produces a dead URL. */
   function wcagUrl(code) {
     return WCAG_URLS[String(code == null ? "" : code).trim()] || null;
+  }
+
+  /* Conformance level (A / AA) for a criterion. Prefers the canonical list,
+     so a hand-typed criterion missing its "(AA)" suffix still resolves, and
+     falls back to a level written into the text or stored on the record. */
+  function wcagLevel(d) {
+    var byCode = WCAG_LEVELS[String(d.wcagSc == null ? "" : d.wcagSc).trim()];
+    if (byCode) return byCode;
+    var m = String(d.wcagFull || "").match(/\((A{1,3})\)\s*$/);
+    if (m) return m[1];
+    return String(d.level || "").trim();
   }
 
   /* =========================================================
@@ -289,9 +304,15 @@
     { header: "Link and Tools Used", key: "linkTools",      width: 26 },
     { header: "WCAG SC",             key: "wcagFull",       width: 28,
       linkUrl: function (d) { return wcagUrl(d.wcagSc); } },
+    { header: "Level",               key: "level",          width: 8,
+      get: function (d) { return wcagLevel(d); } },
+    { header: "Occurrence",          key: "occurrence",     width: 22,
+      get: function () { return OCCURRENCE; } },
     { header: "Finding",             key: "finding",        width: 40 },
-    { header: "Screenshot",          key: "screenshot",     width: 20,
-      get: function (d) { return d.screenshot ? "Attached (" + d.screenshot.name + ")" : (d.screenshotRef || ""); } },
+    /* image: true — the embedded picture is anchored over this cell, so the
+       text value is only a fallback for rows that carry a URL instead. */
+    { header: "Screenshot",          key: "screenshot",     width: 24, image: true,
+      get: function (d) { return d.screenshot ? "" : (d.screenshotRef || ""); } },
     { header: "Recommendation",      key: "recommendation", width: 80 },
     { header: "Change Type",         key: "changeType",     width: 14, list: ["Code", "Design", "Content"] },
     { header: "User Impact",         key: "impact",         width: 13, list: ["Critical", "High", "Medium", "Low"] },
@@ -299,6 +320,9 @@
     { header: "Test Comments",       key: "comments",       width: 26 },
     { header: "Business Sign-off",   key: "signoff",        width: 17, list: ["Pending", "Approved", "Rejected"] }
   ];
+
+  /* Every issue is recorded against the same environment. */
+  var OCCURRENCE = "Desktop - Chrome/Edge";
 
   var HEADER_FILL = "FF1F3864";   /* dark navy, matches the sample report */
   var HEADER_INK  = "FFFFFFFF";
@@ -462,14 +486,21 @@
     reader.onload = function (e) {
       var img = new Image();
       img.onload = function () {
-        var MAX = 160;
+        /* 640px keeps the picture legible once embedded in the Excel report
+           while staying small enough for localStorage. */
+        var MAX = 640;
         var scale = Math.min(1, MAX / Math.max(img.width, img.height));
         var canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        pendingScreenshot = { name: file.name, dataUrl: canvas.toDataURL("image/jpeg", 0.72) };
+        pendingScreenshot = {
+          name: file.name,
+          dataUrl: canvas.toDataURL("image/jpeg", 0.72),
+          w: canvas.width,
+          h: canvas.height
+        };
         el.screenshotPreviewName.textContent = "Attached: " + file.name;
       };
       img.onerror = function () {
@@ -595,6 +626,8 @@
         "<td class=\"col-wrap\">" + esc(d.steps) + "</td>" +
         "<td class=\"col-wrap\">" + esc(d.linkTools) + "</td>" +
         "<td class=\"col-sc\">" + scCell(d) + "</td>" +
+        "<td>" + esc(wcagLevel(d)) + "</td>" +
+        "<td class=\"col-wrap\">" + esc(OCCURRENCE) + "</td>" +
         "<td class=\"col-wrap\">" + esc(d.finding) + "</td>" +
         "<td>" + thumb + "</td>" +
         "<td class=\"col-wrap\">" + esc(d.recommendation) + "</td>" +
@@ -667,7 +700,7 @@
   /* =========================================================
      Excel: template download / bulk import / export
      ========================================================= */
-  var COL_LETTERS = "ABCDEFGHIJKLM".split("");
+  var COL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   function saveWorkbook(wb, filename) {
     return wb.xlsx.writeBuffer().then(function (buf) {
@@ -737,13 +770,15 @@
     "3. WCAG SC, Change Type, User Impact and Recommendation are optional — leave them blank and the tool " +
       "suggests them from your Finding text when you upload the file. Fill them in yourself if you already " +
       "know them; Change Type, User Impact, Status and Business Sign-off have dropdowns so the values stay consistent.",
-    "4. Occurrence is not part of this template — every imported issue is recorded as \"Desktop - Chrome/Edge\".",
+    "4. Leave Level and Occurrence blank — both are filled in for you. Level is taken from the WCAG " +
+      "criterion you choose (A or AA), and Occurrence is always recorded as \"Desktop - Chrome/Edge\". " +
+      "Anything you type in those two columns is ignored on import.",
     "5. Automatic suggestions are keyword-based against WCAG 2.2, not a real accessibility audit — review them " +
       "after import and correct anything that looks wrong, especially for unusual issues.",
-    "6. Screenshot (optional): paste a link to the image, or a short note saying where it lives. The tool records " +
-      "that reference against the issue and carries it into the exported report, but it does not embed the picture. " +
-      "To embed an actual image, log that issue with the \"Attachment / screenshot\" field on the " +
-      "Accessibility Defect Report page instead.",
+    "6. Screenshot (optional): paste a link to the image. The tool records that reference and carries it into the " +
+      "exported report as a clickable link, but it cannot embed a picture from a spreadsheet. To get the actual " +
+      "image embedded in the report, log that issue with the \"Attachment / screenshot\" field on the " +
+      "Accessibility Defect Report page — uploaded screenshots are embedded as real pictures in the Screenshot column.",
     "7. Save this file, then upload it on the Accessibility Defect Report page. Your issues are added to the log " +
       "and a formatted Excel defect report downloads automatically."
   ];
@@ -968,24 +1003,87 @@
 
     /* ---- Sheet 2: the defect data ---- */
     var ws = addIssuesSheet(wb, "Defect Report");
-    defects.forEach(function (d, i) {
-      var values = {};
-      COLUMNS.forEach(function (c) { values[c.key] = cellValue(d, i, c); });
-      var row = ws.addRow(values);
-      styleBodyRow(row);
-      /* turn recognised criteria into links to the W3C Understanding page */
-      COLUMNS.forEach(function (c, ci) {
-        if (!c.linkUrl) return;
-        var url = c.linkUrl(d);
-        var text = String(values[c.key] == null ? "" : values[c.key]);
-        if (!url || !text) return;
-        var cell = row.getCell(ci + 1);
-        cell.value = { text: text, hyperlink: url, tooltip: "Understanding " + text };
-        cell.font = { color: { argb: LINK_INK }, underline: true };
+    var shotCol = COLUMNS.map(function (c) { return !!c.image; }).indexOf(true);
+
+    return resolveShotSizes(defects).then(function () {
+      defects.forEach(function (d, i) {
+        var values = {};
+        COLUMNS.forEach(function (c) { values[c.key] = cellValue(d, i, c); });
+        var row = ws.addRow(values);
+        styleBodyRow(row);
+
+        /* turn recognised criteria into links to the W3C Understanding page */
+        COLUMNS.forEach(function (c, ci) {
+          if (!c.linkUrl) return;
+          var url = c.linkUrl(d);
+          var text = String(values[c.key] == null ? "" : values[c.key]);
+          if (!url || !text) return;
+          var cell = row.getCell(ci + 1);
+          cell.value = { text: text, hyperlink: url, tooltip: "Understanding " + text };
+          cell.font = { color: { argb: LINK_INK }, underline: true };
+        });
+
+        /* an uploaded screenshot is embedded as a real picture */
+        if (d.screenshot && d.screenshot.dataUrl && shotCol >= 0) {
+          embedShot(wb, ws, d.screenshot, row.number, shotCol);
+        } else if (d.screenshotRef && /^https?:\/\//i.test(d.screenshotRef) && shotCol >= 0) {
+          var refCell = row.getCell(shotCol + 1);
+          refCell.value = { text: d.screenshotRef, hyperlink: d.screenshotRef };
+          refCell.font = { color: { argb: LINK_INK }, underline: true };
+        }
       });
+
+      return saveWorkbook(wb, "accessibility-defect-report.xlsx");
+    });
+  }
+
+  /* Older records were stored before width/height were captured; read the
+     dimensions back off the data URL so the picture is never distorted. */
+  function resolveShotSizes(list) {
+    var pending = list.filter(function (d) {
+      return d.screenshot && d.screenshot.dataUrl && !(d.screenshot.w && d.screenshot.h);
+    });
+    if (!pending.length) return Promise.resolve();
+    return Promise.all(pending.map(function (d) {
+      return new Promise(function (done) {
+        var img = new Image();
+        img.onload = function () {
+          d.screenshot.w = img.naturalWidth;
+          d.screenshot.h = img.naturalHeight;
+          done();
+        };
+        img.onerror = function () { done(); };
+        img.src = d.screenshot.dataUrl;
+      });
+    }));
+  }
+
+  /* Anchors the picture inside the Screenshot cell, preserving aspect ratio,
+     and grows the row so nothing is clipped. */
+  function embedShot(wb, ws, shot, rowNumber, colIndex) {
+    var MAX_W = 150, MAX_H = 110;          /* px, the box the picture fits into */
+    var w = shot.w || MAX_W, h = shot.h || MAX_H;
+    var scale = Math.min(MAX_W / w, MAX_H / h, 1);
+    var drawW = Math.max(1, Math.round(w * scale));
+    var drawH = Math.max(1, Math.round(h * scale));
+
+    var parts = String(shot.dataUrl).split(",");
+    var base64 = parts[1];
+    if (!base64) return;
+    var mime = (parts[0].match(/^data:image\/([a-z]+)/i) || [, "jpeg"])[1].toLowerCase();
+    var ext = mime === "png" ? "png" : mime === "gif" ? "gif" : "jpeg";
+    var id = wb.addImage({ base64: base64, extension: ext });
+
+    ws.addImage(id, {
+      tl: { col: colIndex + 0.08, row: rowNumber - 1 + 0.08 },
+      ext: { width: drawW, height: drawH },
+      editAs: "oneCell"
     });
 
-    return saveWorkbook(wb, "accessibility-defect-report.xlsx");
+    /* row height is in points; 1px ~ 0.75pt. Never shrink a taller row. */
+    var needed = Math.ceil(drawH * 0.75) + 8;
+    var row = ws.getRow(rowNumber);
+    if (!row.height || row.height < needed) row.height = needed;
   }
 
   el.exportBtn.addEventListener("click", function () {
