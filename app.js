@@ -444,7 +444,7 @@
   var FALLBACK_RULE = {
     sc: "4.1.2 Name, Role, Value (A)", changeType: "Code", impact: "Medium",
     fix: "This finding is too vague to name a specific fix. " +
-      "Add the DOM snippet for the element in question, the exact foreground and background color values if this is a contrast issue, or what the screen reader announced compared with what was expected, then use Suggest again for a specific recommendation."
+      "Paste the offending markup into the Code snippet field, describe the exact foreground and background color values if this is a contrast issue, or say what the screen reader announced compared with what was expected, then use Suggest again for a specific recommendation."
   };
 
   /* Score by matched keyword length, not by count, so the more specific
@@ -472,38 +472,205 @@
   }
 
   /* =========================================================
-     Contrast ratio (WCAG relative luminance)
+     Offline static-analysis rules: scan a pasted code snippet
+     (HTML/CSS/JS) for concrete accessibility anti-patterns and
+     cite the exact matched fragment in the recommendation.
      ========================================================= */
-  function hexToRgb(hex) {
-    if (!hex) return null;
-    var h = hex.trim().replace(/^#/, "");
-    if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
-    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
-    return {
-      r: parseInt(h.substr(0, 2), 16),
-      g: parseInt(h.substr(2, 2), 16),
-      b: parseInt(h.substr(4, 2), 16)
-    };
+  var IMPACT_RANK = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+
+  function tagsOf(code, name) {
+    var re = new RegExp("<" + name + "\\b[^>]*>", "gi");
+    return code.match(re) || [];
   }
-  function channelLum(c) {
-    var cs = c / 255;
-    return cs <= 0.03928 ? cs / 12.92 : Math.pow((cs + 0.055) / 1.055, 2.4);
+  function hasAttr(tag, attr) {
+    return new RegExp("\\b" + attr + "\\s*=", "i").test(tag);
   }
-  function relLuminance(rgb) {
-    return 0.2126 * channelLum(rgb.r) + 0.7152 * channelLum(rgb.g) + 0.0722 * channelLum(rgb.b);
+  /* Quotes the offending fragment in a recommendation: collapsed to one
+     line and capped so a large paste never balloons the Recommendation field. */
+  function codeQuote(s) {
+    var t = String(s == null ? "" : s).replace(/\s+/g, " ").trim();
+    if (t.length > 160) t = t.slice(0, 157) + "…";
+    return "`" + t + "`";
   }
-  function contrastRatio(hex1, hex2) {
-    var c1 = hexToRgb(hex1), c2 = hexToRgb(hex2);
-    if (!c1 || !c2) return null;
-    var l1 = relLuminance(c1), l2 = relLuminance(c2);
-    var lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
-    return (lighter + 0.05) / (darker + 0.05);
+
+  var CODE_RULES = [
+    { id: "code-img-alt",
+      sc: "1.1.1 Non-text Content (A)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var bad = tagsOf(code, "img").filter(function (t) { return !hasAttr(t, "alt"); });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that every informative image has a text alternative that conveys its meaning so that screen reader users receive the same information as sighted users. " +
+          "Found in your code snippet: " + codeQuote(m) + " has no alt attribute. " +
+          "Make sure to add a descriptive alt attribute, or alt=\"\" if the image is purely decorative, as there is no ARIA equivalent for a missing alt.";
+      } },
+
+    { id: "code-input-label",
+      sc: "3.3.2 Labels or Instructions (A)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var inputs = tagsOf(code, "input").filter(function (t) {
+          return !/type\s*=\s*["'](hidden|submit|button|reset|image)["']/i.test(t);
+        });
+        if (!inputs.length || /<label\b/i.test(code)) return null;
+        var bad = inputs.filter(function (t) { return !hasAttr(t, "aria-label") && !hasAttr(t, "aria-labelledby"); });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that every form control has a persistent visible label so that screen reader users know what to enter and speech-input users can address the field by name. " +
+          "Found in your code snippet: " + codeQuote(m) + " with no associated <label>, aria-label or aria-labelledby. " +
+          "Make sure to add a <label for=\"...\"> matching the input's id, wrap the input inside the <label>, or provide aria-label where a visible label cannot be shown.";
+      } },
+
+    { id: "code-clickable-div",
+      sc: "2.1.1 Keyboard (A)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var bad = tagsOf(code, "div").concat(tagsOf(code, "span")).filter(function (t) {
+          return hasAttr(t, "onclick") && !hasAttr(t, "role") && !hasAttr(t, "tabindex");
+        });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that every interactive element is operable by keyboard so that keyboard-only users can reach and activate it. " +
+          "Found in your code snippet: " + codeQuote(m) + " has an onclick handler but is not a real interactive element. " +
+          "Make sure to replace it with a <button> (or <a href>) so keyboard behaviour comes for free, or add role=\"button\", tabindex=\"0\" and a keydown handler for Enter/Space if the element cannot change.";
+      } },
+
+    { id: "code-tabindex-positive",
+      sc: "2.4.3 Focus Order (A)", changeType: "Code", impact: "Medium",
+      test: function (code) {
+        var m = code.match(/tabindex\s*=\s*["']?\+?[1-9]\d*["']?/i);
+        return m ? m[0] : null;
+      },
+      fix: function (m) {
+        return "Ensure that focus moves through the page in an order that preserves meaning so that keyboard-only users never lose their place. " +
+          "Found in your code snippet: " + codeQuote(m) + ", a positive tabindex, which pulls the element ahead of everything else on the page. " +
+          "Make sure to remove the positive value and use tabindex=\"0\" to join the natural order, or reorder the underlying markup instead.";
+      } },
+
+    { id: "code-outline-none",
+      sc: "2.4.7 Focus Visible (AA)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var m = code.match(/outline\s*:\s*(none|0)\s*;?/i);
+        return m ? m[0] : null;
+      },
+      fix: function (m) {
+        return "Ensure that the element with keyboard focus has a clearly visible focus indicator so that keyboard-only users can always tell which control they are on. " +
+          "Found in your code snippet: " + codeQuote(m) + ". " +
+          "Make sure this isn't removing the only focus indicator — if nothing replaces it, keep the browser default or add your own via the :focus-visible selector, with a contrast ratio of at least 3:1 against the adjacent background.";
+      } },
+
+    { id: "code-autoplay",
+      sc: "1.4.2 Audio Control (A)", changeType: "Code", impact: "Medium",
+      test: function (code) {
+        var bad = tagsOf(code, "video").concat(tagsOf(code, "audio")).filter(function (t) { return hasAttr(t, "autoplay"); });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that audio which plays automatically for more than three seconds can be stopped so that screen reader users can still hear their own speech output. " +
+          "Found in your code snippet: " + codeQuote(m) + ". " +
+          "Make sure to remove the autoplay attribute, or provide a <button> to pause, stop or mute the sound as one of the first focusable elements on the page.";
+      } },
+
+    { id: "code-missing-lang",
+      sc: "3.1.1 Language of Page (A)", changeType: "Code", impact: "Medium",
+      test: function (code) {
+        var bad = tagsOf(code, "html").filter(function (t) { return !hasAttr(t, "lang"); });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that the default language of the page is set programmatically so that screen reader users hear the correct pronunciation and voice. " +
+          "Found in your code snippet: " + codeQuote(m) + " has no lang attribute. " +
+          "Make sure to add a valid BCP 47 code to the root element, for example <html lang=\"en\">.";
+      } },
+
+    { id: "code-table-headers",
+      sc: "1.3.1 Info and Relationships (A)", changeType: "Code", impact: "Medium",
+      test: function (code) {
+        var tables = tagsOf(code, "table");
+        if (!tables.length || /<th\b/i.test(code)) return null;
+        return tables[0];
+      },
+      fix: function (m) {
+        return "Ensure that data tables expose their header relationships so that screen reader users hear the relevant row and column header as they move between cells. " +
+          "Found in your code snippet: " + codeQuote(m) + " with no <th> cells. " +
+          "Make sure to code header cells as <th scope=\"col\"> or <th scope=\"row\">, and add a <caption> describing the table.";
+      } },
+
+    { id: "code-empty-link",
+      sc: "4.1.2 Name, Role, Value (A)", changeType: "Code", impact: "Medium",
+      test: function (code) {
+        var m = code.match(/<a\b[^>]*href\s*=\s*["'](#|javascript:void\(0\)|javascript:;?)["'][^>]*>/i);
+        return m ? m[0] : null;
+      },
+      fix: function (m) {
+        return "Ensure that a link's role matches what it actually does so that screen reader users are not misled into expecting navigation. " +
+          "Found in your code snippet: " + codeQuote(m) + ", a link with no real destination, usually standing in for a button. " +
+          "Make sure to give the <a> a real href, or replace it with a <button> if it triggers an action rather than navigating.";
+      } },
+
+    { id: "code-icon-only-button",
+      sc: "4.1.2 Name, Role, Value (A)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var buttons = code.match(/<button\b[^>]*>[\s\S]*?<\/button>/gi) || [];
+        var bad = buttons.filter(function (b) {
+          var openTag = (b.match(/<button\b[^>]*>/i) || [""])[0];
+          if (hasAttr(openTag, "aria-label") || hasAttr(openTag, "aria-labelledby")) return false;
+          var inner = b.replace(/<button\b[^>]*>/i, "").replace(/<\/button>\s*$/i, "");
+          var text = inner.replace(/<[^>]+>/g, "").trim();
+          return text.length === 0 && /<(svg|i|img)\b/i.test(inner);
+        });
+        return bad[0] || null;
+      },
+      fix: function (m) {
+        return "Ensure that every button exposes an accessible name so that screen reader users know what it does. " +
+          "Found in your code snippet: " + codeQuote(m) + ", a button with only an icon and no text. " +
+          "Make sure to add an aria-label describing the action, for example aria-label=\"Close\", or visually hidden text inside the button.";
+      } },
+
+    { id: "code-aria-hidden-focusable",
+      sc: "4.1.2 Name, Role, Value (A)", changeType: "Code", impact: "High",
+      test: function (code) {
+        var re = /<[a-z][a-z0-9-]*\b(?=[^>]*\baria-hidden\s*=\s*["']true["'])(?=[^>]*\btabindex\s*=\s*["']?0["']?)[^>]*>/i;
+        var m = code.match(re);
+        return m ? m[0] : null;
+      },
+      fix: function (m) {
+        return "Ensure that an element hidden from assistive technology is not still reachable by keyboard so that keyboard and screen reader users have a consistent experience. " +
+          "Found in your code snippet: " + codeQuote(m) + ", which carries both aria-hidden=\"true\" and tabindex=\"0\". " +
+          "Make sure to remove tabindex from hidden content, or remove aria-hidden if the content should actually be reachable.";
+      } },
+
+    { id: "code-marquee-blink",
+      sc: "2.2.2 Pause, Stop, Hide (A)", changeType: "Design", impact: "Medium",
+      test: function (code) {
+        var m = code.match(/<(marquee|blink)\b[^>]*>/i);
+        return m ? m[0] : null;
+      },
+      fix: function (m) {
+        return "Ensure that moving or blinking content can be paused, or is removed altogether, so that users with attention or vestibular disorders are not disrupted. " +
+          "Found in your code snippet: " + codeQuote(m) + ", a deprecated tag with no accessible way to stop it. " +
+          "Make sure to remove it and, if motion is still wanted, rebuild it with CSS/JS behind a visible pause control that respects prefers-reduced-motion.";
+      } }
+  ];
+
+  /* Every matching rule, most severe first, so the caller can pick the
+     top one as the primary suggestion and still see what else was found. */
+  function matchCodeRules(code) {
+    if (!code || !code.trim()) return [];
+    var hits = [];
+    CODE_RULES.forEach(function (rule) {
+      var m = rule.test(code);
+      if (m) hits.push({ rule: rule, match: m });
+    });
+    hits.sort(function (a, b) { return (IMPACT_RANK[b.rule.impact] || 0) - (IMPACT_RANK[a.rule.impact] || 0); });
+    return hits;
   }
 
   /* =========================================================
      Report schema — one definition drives the on-screen log,
      the downloadable template and the exported report so all
-     three always show the same 13 columns in the same order.
+     three always show the same columns in the same order.
      ========================================================= */
   var COLUMNS = [
     { header: "Sr. No.",             key: "srNo",           width: 8,  get: function (d, i) { return i + 1; } },
@@ -517,6 +684,7 @@
     { header: "Occurrence",          key: "occurrence",     width: 22,
       get: function () { return OCCURRENCE; } },
     { header: "Finding",             key: "finding",        width: 40 },
+    { header: "Code Snippet",        key: "code",           width: 30 },
     /* image: true — the embedded picture is anchored over this cell, so the
        text value is only a fallback for rows that carry a URL instead. */
     { header: "Screenshot",          key: "screenshot",     width: 24, image: true,
@@ -571,10 +739,10 @@
      ========================================================= */
   var el = {};
   [
-    "fPage", "fSteps", "fLinkTools", "fFinding", "fWcag",
-    "fChangeType", "fImpact", "fStatus", "fSignoff", "fFg", "fBg",
+    "fPage", "fSteps", "fLinkTools", "fFinding", "fCode", "fWcag",
+    "fChangeType", "fImpact", "fStatus", "fSignoff",
     "fRecommendation", "fComments", "fScreenshot", "screenshotPreviewName",
-    "contrastResult", "contrastOutput", "wcagList", "issueForm",
+    "wcagList", "issueForm",
     "suggestBtn", "clearFormBtn", "exportBtn", "clearAllBtn",
     "defectTableBody", "emptyState", "countBadge",
     "downloadTemplateBtn", "uploadTemplateInput", "importStatus",
@@ -628,60 +796,51 @@
   /* =========================================================
      Suggest button
      ========================================================= */
-  function updateContrastPreview() {
-    var ratio = contrastRatio(el.fFg.value, el.fBg.value);
-    if (ratio === null) { el.contrastResult.hidden = true; return; }
-    var passesNormal = ratio >= 4.5, passesLarge = ratio >= 3;
-    el.contrastResult.hidden = false;
-    el.contrastOutput.innerHTML = ratio.toFixed(2) + ":1 &mdash; " +
-      "<span class=\"" + (passesNormal ? "pass" : "fail") + "\">" +
-      (passesNormal ? "Passes AA (normal text)" : passesLarge ? "Large text only" : "Fails AA") + "</span>";
-  }
-  el.fFg.addEventListener("input", updateContrastPreview);
-  el.fBg.addEventListener("input", updateContrastPreview);
-
   el.suggestBtn.addEventListener("click", function () {
     var text = (el.fFinding.value + " " + el.fSteps.value).trim();
-    if (!text) {
-      setFieldError(el.fFinding, "Describe the issue before asking for a suggestion — the rules engine reads the Finding text.");
+    var code = el.fCode.value.trim();
+    if (!text && !code) {
+      setFieldError(el.fFinding, "Describe the issue, or paste a code snippet below, before asking for a suggestion.");
       el.fFinding.focus();
       return;
     }
     setFieldError(el.fFinding, "");
-    var ratio = contrastRatio(el.fFg.value, el.fBg.value);
-    var rule;
-    if (ratio !== null) {
-      rule = RULES.filter(function (r) { return r.id === "contrast"; })[0];
+
+    /* Code evidence is concrete, so a matched code rule outranks a fuzzy
+       keyword match on the Finding text as the primary suggestion. */
+    var codeHits = matchCodeRules(code);
+    var textRule = text ? matchRule(text) : null;
+
+    var primary, primaryFix;
+    if (codeHits.length) {
+      primary = codeHits[0].rule;
+      primaryFix = primary.fix(codeHits[0].match);
+    } else if (textRule) {
+      primary = textRule;
+      primaryFix = textRule.fix;
     } else {
-      rule = matchRule(text) || FALLBACK_RULE;
+      primary = FALLBACK_RULE;
+      primaryFix = FALLBACK_RULE.fix;
     }
 
-    el.fWcag.value = rule.sc;
-    el.fChangeType.value = rule.changeType;
-    el.fImpact.value = rule.impact;
+    el.fWcag.value = primary.sc;
+    el.fChangeType.value = primary.changeType;
+    el.fImpact.value = primary.impact;
 
-    var fixText = rule.fix;
-    if (ratio !== null) {
-      var passesNormal = ratio >= 4.5;
-      var passesLargeOnly = !passesNormal && ratio >= 3;
-      fixText =
-        "Ensure that body text has a contrast ratio of at least 4.5:1 against its background, and 3:1 for large text of " +
-        "24px or 18.66px bold and above, so that low vision users can read it without magnification. " +
-        "The measured contrast between " + el.fFg.value.trim() + " and " + el.fBg.value.trim() + " is " + ratio.toFixed(2) + ":1, which " +
-        (passesNormal
-          ? "meets the 4.5:1 minimum for body text. "
-          : passesLargeOnly
-            ? "meets 3:1 for large text only and falls short of the 4.5:1 minimum for body text. "
-            : "falls short of both the 4.5:1 minimum for body text and the 3:1 minimum for large text. ") +
-        (passesNormal
-          ? "Make sure to keep this pair as the design changes and re-check it with a contrast checker, as there is no ARIA equivalent for a color fix. "
-          : "Make sure to darken the foreground color or lighten the background color until the ratio reaches 4.5:1 and verify the value with a contrast checker, as there is no ARIA equivalent for a color fix. ") +
-        "Also ensure that the contrast ratio stays at 4.5:1 or above in hover, focus, visited and dark mode states and over background images and gradients.";
+    /* Nothing else detected gets dropped silently — it's appended below
+       the primary fix even though only one SC/impact/change type is set. */
+    var extra = codeHits.slice(1).map(function (h) {
+      return "[" + h.rule.sc + "] " + h.rule.fix(h.match);
+    });
+    if (textRule && textRule !== primary && textRule.sc !== primary.sc) {
+      extra.push("[" + textRule.sc + "] " + textRule.fix);
     }
-    el.fRecommendation.value = fixText;
-    updateContrastPreview();
-    announce("Suggestion applied: " + rule.sc + ", " + rule.impact + " impact, " + rule.changeType +
-      " change. Review the pre-filled fields before adding the issue.");
+    el.fRecommendation.value = extra.length
+      ? primaryFix + "\n\nAlso detected:\n" + extra.map(function (e) { return "• " + e; }).join("\n")
+      : primaryFix;
+
+    announce("Suggestion applied" + (codeHits.length ? " from your code snippet" : "") + ": " + primary.sc + ", " +
+      primary.impact + " impact, " + primary.changeType + " change. Review the pre-filled fields before adding the issue.");
   });
 
   /* =========================================================
@@ -728,7 +887,6 @@
     el.fImpact.value = "High";
     el.fStatus.value = "Open";
     el.fSignoff.value = "Pending";
-    el.contrastResult.hidden = true;
     pendingScreenshot = null;
     el.screenshotPreviewName.textContent = "";
     clearErrors([el.fPage, el.fFinding]);
@@ -768,6 +926,7 @@
       steps: el.fSteps.value.trim(),
       linkTools: el.fLinkTools.value.trim(),
       finding: el.fFinding.value.trim(),
+      code: el.fCode.value.trim(),
       wcagSc: scCode,
       wcagFull: scRaw,
       level: level,
@@ -775,8 +934,6 @@
       impact: el.fImpact.value,
       status: el.fStatus.value,
       signoff: el.fSignoff.value,
-      fg: el.fFg.value.trim(),
-      bg: el.fBg.value.trim(),
       recommendation: el.fRecommendation.value.trim(),
       comments: el.fComments.value.trim(),
       screenshot: pendingScreenshot,
@@ -837,6 +994,7 @@
         "<td>" + esc(wcagLevel(d)) + "</td>" +
         "<td class=\"col-wrap\">" + esc(OCCURRENCE) + "</td>" +
         "<td class=\"col-wrap\">" + esc(d.finding) + "</td>" +
+        "<td class=\"col-code\">" + esc(d.code) + "</td>" +
         "<td>" + thumb + "</td>" +
         "<td class=\"col-wrap\">" + esc(d.recommendation) + "</td>" +
         "<td>" + esc(d.changeType) + "</td>" +
@@ -934,7 +1092,7 @@
     return wb;
   }
 
-  /* Builds the 13-column sheet with the navy header used by both files. */
+  /* Builds the sheet (columns driven by COLUMNS) with the navy header used by both files. */
   function addIssuesSheet(wb, name) {
     var ws = wb.addWorksheet(name, { views: [{ state: "frozen", ySplit: 1 }] });
     ws.columns = COLUMNS.map(function (c) {
@@ -976,18 +1134,23 @@
       "e.g. \"Hero image has no alt text\" or \"Submit button loses its focus outline when tabbed to\". " +
       "\"Sr. No.\" is optional and only for your own reference while filling this in — the tool renumbers issues itself on import.",
     "3. WCAG SC, Change Type, User Impact and Recommendation are optional — leave them blank and the tool " +
-      "suggests them from your Finding text when you upload the file. Fill them in yourself if you already " +
+      "suggests them from your Finding text (and from Code Snippet, if you fill it in — see below) when you " +
+      "upload the file. Fill them in yourself if you already " +
       "know them; Change Type, User Impact, Status and Business Sign-off have dropdowns so the values stay consistent.",
     "4. Leave Level and Occurrence blank — both are filled in for you. Level is taken from the WCAG " +
       "criterion you choose (A or AA), and Occurrence is always recorded as \"Desktop - Chrome/Edge\". " +
       "Anything you type in those two columns is ignored on import.",
     "5. Automatic suggestions are keyword-based against WCAG 2.2, not a real accessibility audit — review them " +
       "after import and correct anything that looks wrong, especially for unusual issues.",
-    "6. Screenshot (optional): paste a link to the image. The tool records that reference and carries it into the " +
+    "6. Code Snippet (optional): paste the HTML, CSS or JS behind the issue, e.g. \"<img src=\\\"hero.jpg\\\">\" or " +
+      "\"a { outline: none; }\". When WCAG SC, Change Type, User Impact or Recommendation are left blank, the tool " +
+      "scans this column for concrete problems (a missing alt attribute, a clickable <div>, a positive tabindex, " +
+      "and more) and prefers that over a Finding-text guess, citing the exact matched fragment in the recommendation.",
+    "7. Screenshot (optional): paste a link to the image. The tool records that reference and carries it into the " +
       "exported report as a clickable link, but it cannot embed a picture from a spreadsheet. To get the actual " +
       "image embedded in the report, log that issue with the \"Attachment / screenshot\" field on the " +
       "Accessibility Defect Report page — uploaded screenshots are embedded as real pictures in the Screenshot column.",
-    "7. Save this file, then upload it on the Accessibility Defect Report page. Your issues are added to the log " +
+    "8. Save this file, then upload it on the Accessibility Defect Report page. Your issues are added to the log " +
       "and a formatted Excel defect report downloads automatically."
   ];
 
@@ -1052,6 +1215,7 @@
       linkTools: "https://example.com/login, NVDA + Chrome",
       wcagFull: "",
       finding: "The submit button loses its focus outline when tabbed to",
+      code: "",
       screenshot: "",
       recommendation: "",
       changeType: "",
@@ -1120,6 +1284,7 @@
 
           var steps = pick(row, ["Steps to Reproduce", "Steps"]);
           var linkTools = pick(row, ["Link and Tools Used", "Link and Tools"]);
+          var code = pick(row, ["Code Snippet", "Code", "Snippet"]);
           var scRaw = pick(row, ["WCAG SC", "WCAG Success Criterion", "WCAG"]);
           var changeType = pick(row, ["Change Type"]);
           var impact = pick(row, ["User Impact", "Impact"]);
@@ -1130,20 +1295,22 @@
           var signoff = pick(row, ["Business Sign-off", "Business Signoff", "Sign-off", "Signoff"]) || "Pending";
 
           if (!scRaw || !changeType || !impact || !recommendation) {
-            var rule = matchRule((finding + " " + steps).trim()) || FALLBACK_RULE;
+            var codeHits = matchCodeRules(code);
+            var rule = codeHits.length ? codeHits[0].rule : (matchRule((finding + " " + steps).trim()) || FALLBACK_RULE);
+            var ruleFix = codeHits.length ? rule.fix(codeHits[0].match) : rule.fix;
             if (!scRaw) scRaw = rule.sc;
             if (!changeType) changeType = rule.changeType;
             if (!impact) impact = rule.impact;
-            if (!recommendation) recommendation = rule.fix;
+            if (!recommendation) recommendation = ruleFix;
           }
           var scCode = (scRaw.match(/^[\d.]+/) || [""])[0];
           var level = (scRaw.match(/\(([^)]+)\)\s*$/) || [, ""])[1];
 
           addDefect({
-            page: page, steps: steps, linkTools: linkTools, finding: finding,
+            page: page, steps: steps, linkTools: linkTools, finding: finding, code: code,
             wcagSc: scCode, wcagFull: scRaw, level: level,
             changeType: changeType, impact: impact,
-            status: status, signoff: signoff, fg: "", bg: "",
+            status: status, signoff: signoff,
             recommendation: recommendation, comments: comments,
             screenshot: null, screenshotRef: screenshotRef
           });

@@ -244,7 +244,13 @@ form { margin-top: 1.125rem; display: flex; flex-direction: column; gap: 1.25rem
 
 .field { display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }
 .field label { font-size: 0.8125rem; font-weight: 600; color: var(--ink-soft); }
-.field__req { font-weight: 400; color: var(--ink-faint); }
+.field__req, .field__optional { font-weight: 400; color: var(--ink-faint); }
+
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
 
 input[type="text"], input[type="file"], select, textarea {
   font-family: var(--font-body);
@@ -292,18 +298,6 @@ input[type="text"]::placeholder, textarea::placeholder { color: var(--ink-faint)
   min-height: 1.5rem;
   padding: 0.25rem 0;
 }
-
-.field--contrast {
-  justify-content: center;
-  background: var(--surface-sunken);
-  border: 1px dashed var(--border-field);
-  border-radius: var(--radius);
-  padding: 0.5625rem 0.6875rem;
-}
-.field--contrast[hidden] { display: none; }
-#contrastOutput { font-family: var(--font-mono); font-size: 0.8125rem; }
-#contrastOutput .pass { color: var(--low); font-weight: 600; }
-#contrastOutput .fail { color: var(--critical); font-weight: 600; }
 
 /* ---- buttons ----------------------------------------------------------- */
 .btn-row { display: flex; gap: 0.625rem; flex-wrap: wrap; }
@@ -400,6 +394,14 @@ tbody tr:nth-child(even) { background: var(--surface-sunken); }
 td.col-num { font-family: var(--font-mono); color: var(--ink-faint); }
 /* holds the full criterion ("2.4.7 Focus Visible (AA)"), so it must wrap */
 td.col-sc { font-family: var(--font-mono); font-size: 0.8125rem; white-space: normal; }
+td.col-code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  max-height: 7.5rem;
+  overflow-y: auto;
+}
 
 /* links out to the W3C "Understanding" page for the criterion */
 .sc-link {

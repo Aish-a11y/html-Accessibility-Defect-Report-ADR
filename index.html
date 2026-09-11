@@ -82,7 +82,9 @@
     <p class="card__lede">
       Just describe the bug you found in plain language, then use "Suggest WCAG SC, priority &amp; fix" — the WCAG
       criterion, user impact, change type and a recommended fix are auto-filled from a built-in rules library.
-      Everything stays editable, so double-check the suggestion before adding the issue.
+      Paste the offending markup or style in the optional Code snippet field and the same rules library scans it for
+      concrete issues (a missing alt attribute, a clickable &lt;div&gt;, outline: none, and more), citing the exact
+      line in the recommendation. Everything stays editable, so double-check the suggestion before adding the issue.
     </p>
 
     <form id="issueForm" novalidate>
@@ -117,6 +119,14 @@
           <textarea id="fFinding" rows="3" aria-required="true" aria-describedby="fFinding-error"
                     placeholder="e.g. The submit button loses its focus outline when tabbed to, or Hero image has no alt text"></textarea>
           <p class="field__error" id="fFinding-error" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="fCode">Code snippet <span class="field__optional">(optional)</span></label>
+          <textarea id="fCode" rows="4" class="input-mono" spellcheck="false"
+                    aria-describedby="fCode-hint"
+                    placeholder="e.g. &lt;img src=&quot;hero.jpg&quot;&gt; or a { outline: none; } rule"></textarea>
+          <p class="hint hint--inline" id="fCode-hint">Paste the HTML, CSS or JS behind the issue and Suggest scans it for concrete problems, not just keywords.</p>
         </div>
 
         <div class="btn-row">
@@ -181,26 +191,6 @@
       </fieldset>
 
       <fieldset class="fieldset">
-        <legend class="legend">Colour contrast check <span class="legend__optional">(optional — for Color Contrast findings)</span></legend>
-
-        <div class="grid grid--3">
-          <div class="field">
-            <label for="fFg">Foreground colour</label>
-            <input type="text" id="fFg" placeholder="#7990A1" aria-describedby="fColor-hint">
-          </div>
-          <div class="field">
-            <label for="fBg">Background colour</label>
-            <input type="text" id="fBg" placeholder="#FFFFFF" aria-describedby="fColor-hint">
-          </div>
-          <div class="field field--contrast" id="contrastResult" hidden>
-            <label for="contrastOutput">Contrast ratio</label>
-            <output id="contrastOutput" for="fFg fBg"></output>
-          </div>
-        </div>
-        <p class="hint hint--inline" id="fColor-hint">Enter 3- or 6-digit hex values, for example #767676 and #FFFFFF.</p>
-      </fieldset>
-
-      <fieldset class="fieldset">
         <legend class="legend">Fix and evidence</legend>
 
         <div class="field">
@@ -254,6 +244,7 @@
             <th scope="col">Level</th>
             <th scope="col">Occurrence</th>
             <th scope="col">Finding</th>
+            <th scope="col">Code Snippet</th>
             <th scope="col">Screenshot</th>
             <th scope="col">Recommendation</th>
             <th scope="col">Change Type</th>
